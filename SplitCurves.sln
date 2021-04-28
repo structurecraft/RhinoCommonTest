@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitCurvesComponent", "Component\SplitCurvesComponent.csproj", "{BADF75FA-2924-41F2-9D5E-D661BB7CD75B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplitCurvesTests", "UnitTest\SplitCurvesTests.csproj", "{E47385F9-B2ED-412D-B321-C8064F53E2EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitCurvesPlugin", "Plugin\SplitCurvesPlugin.csproj", "{05C40B81-46CE-40D2-AF38-835DF489D66D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitCurvesLib", "Lib\SplitCurvesLib.csproj", "{F9979EC6-668D-4361-8F21-AAF6AC6B684F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BADF75FA-2924-41F2-9D5E-D661BB7CD75B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BADF75FA-2924-41F2-9D5E-D661BB7CD75B}.Debug|x64.Build.0 = Debug|Any CPU
+		{BADF75FA-2924-41F2-9D5E-D661BB7CD75B}.Release|x64.ActiveCfg = Release|Any CPU
+		{BADF75FA-2924-41F2-9D5E-D661BB7CD75B}.Release|x64.Build.0 = Release|Any CPU
+		{E47385F9-B2ED-412D-B321-C8064F53E2EF}.Debug|x64.ActiveCfg = Debug|x64
+		{E47385F9-B2ED-412D-B321-C8064F53E2EF}.Debug|x64.Build.0 = Debug|x64
+		{E47385F9-B2ED-412D-B321-C8064F53E2EF}.Release|x64.ActiveCfg = Release|x64
+		{E47385F9-B2ED-412D-B321-C8064F53E2EF}.Release|x64.Build.0 = Release|x64
+		{05C40B81-46CE-40D2-AF38-835DF489D66D}.Debug|x64.ActiveCfg = Debug|x64
+		{05C40B81-46CE-40D2-AF38-835DF489D66D}.Debug|x64.Build.0 = Debug|x64
+		{05C40B81-46CE-40D2-AF38-835DF489D66D}.Release|x64.ActiveCfg = Release|Any CPU
+		{05C40B81-46CE-40D2-AF38-835DF489D66D}.Release|x64.Build.0 = Release|Any CPU
+		{F9979EC6-668D-4361-8F21-AAF6AC6B684F}.Debug|x64.ActiveCfg = Debug|x64
+		{F9979EC6-668D-4361-8F21-AAF6AC6B684F}.Debug|x64.Build.0 = Debug|x64
+		{F9979EC6-668D-4361-8F21-AAF6AC6B684F}.Release|x64.ActiveCfg = Release|Any CPU
+		{F9979EC6-668D-4361-8F21-AAF6AC6B684F}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {77AC94B5-BDD3-440E-8ADE-BCA9322354A8}
+	EndGlobalSection
+EndGlobal
