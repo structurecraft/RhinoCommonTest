@@ -16,7 +16,7 @@ Please complete the following tasks.
 
       This method takes a curve and a series of planes. The planes must split the curve into its smallest loops. Note that the planes will all be parallel. See below for a visual explanation. The dotted grey outline is the input curve, the red dotted lines are planes and the solid rectangles are the resultant curves. The Unit tests will help you debug.
 
-      ![diagram](C:\Users\csykes\Documents\cloned_gits\RhinoCommonTest\diagram.jpg)
+      ![diagram](diagram.jpg)
 
    2. Complete the SplitCurvesCommand
 
