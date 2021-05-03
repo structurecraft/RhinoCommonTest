@@ -8,7 +8,7 @@ Please complete the following tasks.
 
 2. Create a new branch with your username.
 
-3. Create a PR from develop -> new branch.
+3. Create a PR from master -> new branch.
 
 4. Please complete the following changes.
 
