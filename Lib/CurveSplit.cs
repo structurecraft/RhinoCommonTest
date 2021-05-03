@@ -9,7 +9,7 @@ namespace SplitCurves.Lib
 	public static class Curves
 	{
 
-		public static List<Curve> DivideCurve(Curve boundary, List<Plane> planes)
+		public static IEnumerable<Curve> DivideCurve(Curve boundary, IEnumerable<Plane> planes)
 		{
 			return null;
 		}
