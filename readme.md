@@ -4,7 +4,7 @@ Welcome to this software developer test repository.
 
 Please complete the following tasks.
 
-1. Fork the repo and keep it private, send me an invite to the private repo.
+1. Fork the repo and send me an invite to the repo.
 
 2. Create a new branch with your username.
 
