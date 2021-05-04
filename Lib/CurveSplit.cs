@@ -79,7 +79,58 @@ namespace SplitCurves.Lib
             return crvResult;
         }
 
+        /// <summary>
+        /// Divides curve by a collection of planes.
+        /// </summary>
+        /// <param name="boundary">Closed curve and planar.</param>
+        /// <param name="planes">Collection of planes, must be parallel.</param>
+        /// <param name="tolerance">Tolerance set per default to 1e-3.</param>
+        /// <returns>A set of closed curve.</returns>
+        public static List<Curve> DivideCurve2(Curve boundary, List<Plane> planes, double tolerance = 1e-3)
+        {
+            if (planes == null || planes.Count == 0)
+            {
+                throw new Exception("Input planes is null or empty!");
+            }
 
+            for (int i = 1; i < planes.Count; i++)
+            {
+                if (planes[0].Normal.IsParallelTo(planes[i].Normal) == 0)
+                {
+                    throw new Exception("Planes should be parallel!");
+                }
+            }
+
+            if (!boundary.IsPlanar())
+            {
+                throw new Exception("Boundary should be Planar!");
+            }
+
+            if (!boundary.IsClosed)
+            {
+                throw new Exception("Boundary should be closed!");
+            }
+
+            // Convert the boundary in a Brep, and extract the face as a BrepFace allowing the use of the split method.
+            Brep[] breps = Brep.CreatePlanarBreps(boundary, tolerance);
+            BrepFace srfToCut = breps[0].Faces[0];
+            List<Curve> cutters = new List<Curve>();
+
+            foreach (Plane pl in planes)
+            {
+                CurveIntersections intersection = Intersection.CurvePlane(boundary, pl, tolerance);
+                if (intersection == null || intersection.Count == 0) continue;
+
+                // Collect the curves used for cutting the brep.
+                cutters.Add(new Line(intersection[0].PointA, intersection[1].PointA).ToNurbsCurve());
+            }
+
+            if (cutters.Count == 0) return null;
+
+            Brep spitBrep = srfToCut.Split(cutters, tolerance);
+            // Extract and join the edges.
+            return spitBrep.Faces.Select(face => Curve.JoinCurves(face.DuplicateFace(false).Edges, tolerance)).Select(s => s.First()).ToList();
+        }
 
         private static double SignedDistance(Plane plane, Curve crv)
         {
