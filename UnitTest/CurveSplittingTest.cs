@@ -1,55 +1,60 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System;
-
-using Rhino.Geometry;
-using Rhino;
-
-using Xunit;
-
+﻿using Rhino.Geometry;
 using SplitCurves.Lib;
+using System;
+using System.Collections.Generic;
+using Xunit;
+using Xunit.Abstractions;
 
 
 namespace SplitCurves.Testing
 {
 
-	[Collection("Rhino Collection")]
-	public class CurveSplittingTest
-	{
+    [Collection("Rhino Collection")]
+    public class CurveSplittingTest
+    {
+        private readonly ITestOutputHelper _testOutput;
 
-		// Please improve this unit test ?
-		[Fact]
-		public void SplittingTest()
-		{
-			Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 5000, 1000);
-			Curve Boundary = rect.ToNurbsCurve();
+        public CurveSplittingTest(ITestOutputHelper testOutput)
+        {
+            _testOutput = testOutput;
+        }
 
-			List<Plane> splitPlanes = new List<Plane>();
-			
-			for(int i = 1; i < 5; i++)
-			{
-				Point3d planeOrigin = new Point3d(i * 500, 0, 0);
-				Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
-				splitPlanes.Add(splitPlane);
-			}
+        private static Curve Boundary => new Rectangle3d(Plane.WorldXY, 5000, 1000).ToNurbsCurve();
 
-			List<Curve> splitCurves = Curves.DivideCurve(Boundary, splitPlanes);
+        [Fact]
+        public void SplittingTest()
+        {
+            // Arrange
+            int numberOfCuts = 5;
+            double boundaryArea = AreaMassProperties.Compute(Boundary).Area;
 
-			Assert.Equal<int>(5, splitCurves.Count);
-			Assert.All<Curve>(splitCurves, result => Assert.True(result.IsClosed));
+            List<Plane> splitPlanes = new List<Plane>();
 
-			double boundaryArea = AreaMassProperties.Compute(Boundary).Area;
+            for (int i = 1; i < numberOfCuts; i++)
+            {
+                Point3d planeOrigin = new Point3d(i * 500, 0, 0);
+                Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
+                splitPlanes.Add(splitPlane);
+            }
 
-			double splitAreas = 0;
-			foreach(Curve crv in splitCurves)
-			{
-				double crvArea = AreaMassProperties.Compute(crv).Area;
-				splitAreas += crvArea;
-			}
+            // Act
+            List<Curve> splitCurves = Curves.DivideCurve(Boundary, splitPlanes);
+            //List<Curve> splitCurves = Curves.DivideCurve2(Boundary, splitPlanes);
 
-			Assert.Equal<double>(Math.Round(boundaryArea, 0), Math.Round(splitAreas, 0));
-		}
+            // Assert
+            Assert.Equal<int>(numberOfCuts, splitCurves.Count);
+            Assert.All<Curve>(splitCurves, result => Assert.True(result.IsClosed));
 
-	}
+            double splitAreas = 0;
+            foreach (Curve crv in splitCurves)
+            {
+                double crvArea = AreaMassProperties.Compute(crv).Area;
+                splitAreas += crvArea;
+            }
+
+            Assert.Equal<double>(Math.Round(boundaryArea, 0), Math.Round(splitAreas, 0));
+        }
+
+    }
 
 }
