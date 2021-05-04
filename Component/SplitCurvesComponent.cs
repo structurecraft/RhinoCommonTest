@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
+using Rhino;
 using Rhino.Geometry;
+using SplitCurves.Lib;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -32,6 +34,8 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
 		{
+            pManager.AddCurveParameter("Boundary", "B", "Closed curve describing a boundary", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("Planes", "P", "Planes used to split the closed curve", GH_ParamAccess.list);
 		}
 
 		/// <summary>
@@ -39,6 +43,7 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
 		{
+            pManager.AddCurveParameter("Curves", "C", "Closed curves boundary created from the splitting", GH_ParamAccess.list);
 		}
 
 		/// <summary>
@@ -48,6 +53,16 @@ namespace SplitCurves.Component
 		/// to store data in output parameters.</param>
 		protected override void SolveInstance(IGH_DataAccess DA)
 		{
+            Curve boundary = null;
+            List<Plane> pls = new List<Plane>();
+
+            if (!DA.GetData<Curve>(0, ref boundary)) return;
+            if (!DA.GetDataList<Plane>(1, pls) || pls == null || pls.Count == 0) return;
+
+            RhinoDoc activeDoc = RhinoDoc.ActiveDoc;
+            double tolerance = activeDoc.ModelAbsoluteTolerance;
+
+            DA.SetDataList(0, Curves.DivideCurve(boundary, pls, tolerance));
 		}
 
 		/// <summary>
