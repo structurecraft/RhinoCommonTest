@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using Rhino;
+using Rhino.Geometry;
 using SplitCurves.Lib;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,42 @@ namespace SplitCurves.Testing
             Assert.Equal<double>(Math.Round(boundaryArea, 0), Math.Round(splitAreas, 0));
         }
 
-    }
+        [Fact]
+        public void DivideCurve_Throw_An_Exception_If_Input_Planes_Is_Null_Or_Empty()
+        {
+            // Arrange
+            List<Plane> emptyPlanes = new List<Plane>();
+            List<Plane> nullPlanes = null;
 
+            // Assert
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, emptyPlanes));
+            Assert.Equal("Input planes is null or empty!", ex.Message);
+            Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, nullPlanes));
+        }
+
+        [Fact]
+        public void DivideCurve_Throw_An_Exception_If_Input_Planes_Are_Not_Parallel()
+        {
+            // Arrange
+            List<Plane> splitPlanes = new List<Plane>();
+
+            for (int i = 1; i < 4; i++)
+            {
+                Point3d planeOrigin = new Point3d(i * 500, 0, 0);
+                Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
+                splitPlanes.Add(splitPlane);
+            }
+
+            Plane p = splitPlanes[2];
+            p.Rotate(RhinoMath.ToRadians(35), Vector3d.ZAxis, splitPlanes[2].Origin);
+
+            splitPlanes[2] = p;
+
+            _testOutput.WriteLine(splitPlanes[2].Normal.ToString());
+
+            // Assert
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, splitPlanes));
+            Assert.Equal("Planes should be parallel!", ex.Message);
+        }
+    }
 }
