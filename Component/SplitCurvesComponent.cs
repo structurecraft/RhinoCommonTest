@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using SplitCurves;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -33,7 +34,9 @@ namespace SplitCurves.Component
 		protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
 		{
 			/// input Curves to Split
-			pManager.AddCurveParameter("EvaluationCurve", "Eval_Crv", "Curve to Split", GH_ParamAccess.item);
+			pManager.AddCurveParameter("EvaluationCurve", "Eval_Crv", "Curve to Split", GH_ParamAccess.list);
+
+			
 			/// input Planes used for Spliting Curve
 			pManager.AddPlaneParameter("SplitingPlane", "Split_Pln", "Plane used for spliting", GH_ParamAccess.list);
 		
@@ -55,6 +58,37 @@ namespace SplitCurves.Component
 		/// to store data in output parameters.</param>
 		protected override void SolveInstance(IGH_DataAccess DA)
 		{
+			List<Curve> Eval_Crv = new List<Curve>();
+			List<Plane> Split_Pln = new List<Plane>();
+			
+			// Then we need to access the input parameters individually. 
+			// When data cannot be extracted from a parameter, we should abort this method.
+			if (!DA.GetDataList(0, Eval_Crv)) return;
+			if (!DA.GetDataList(1, Split_Pln)) return;
+
+			if (Eval_Crv.Count > 1)
+			{
+				AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please Join The Curve");
+				return;
+			}
+			else
+            {
+				bool planar_test = Eval_Crv[0].IsPlanar();
+
+
+				if (planar_test == true)
+                {
+					List<Curve> Loop_Crv = SplitCurves.Lib.Curves.DivideCurve(Eval_Crv[0], Split_Pln);
+					DA.SetDataList(0, Loop_Crv);
+				}
+				else
+                {
+					AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The Curve Should be Planar");
+					return;
+
+				}
+            }
+
 		}
 
 		/// <summary>
