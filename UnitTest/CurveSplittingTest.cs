@@ -3,7 +3,6 @@ using Rhino.Geometry;
 using SplitCurves.Lib;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ namespace SplitCurves.Testing
             _testOutput = testOutput;
         }
 
-        private static List<Plane> splitPlanes
+        private static List<Plane> SplitPlanes
         {
             get
             {
@@ -47,10 +46,11 @@ namespace SplitCurves.Testing
             double boundaryArea = AreaMassProperties.Compute(boundary).Area;
 
             // Act
-            List<Curve> splitCurves = Curves.DivideCurve(boundary, splitPlanes);
-            List<Curve> splitCurves2 = Curves.DivideCurve2(boundary, splitPlanes);
+            List<Curve> splitCurves = Curves.DivideCurve(boundary, SplitPlanes);
+            List<Curve> splitCurves2 = Curves.DivideCurve2(boundary, SplitPlanes);
 
             // Assert
+            // Using Fluent Assertions these assertions can be chained.
             Assert.Equal<int>(numberOfCuts, splitCurves.Count);
             Assert.Equal<int>(numberOfCuts, splitCurves2.Count);
             Assert.All<Curve>(splitCurves, result => Assert.True(result.IsClosed));
@@ -83,7 +83,7 @@ namespace SplitCurves.Testing
         public void DivideCurve_Throw_An_Exception_If_Input_Planes_Are_Not_Parallel()
         {
             // Arrange
-            List<Plane> planes = new List<Plane>(splitPlanes);
+            List<Plane> planes = new List<Plane>(SplitPlanes);
             Plane p = planes[2];
             p.Rotate(RhinoMath.ToRadians(35), Vector3d.ZAxis, planes[2].Origin);
             planes[2] = p;
@@ -97,7 +97,7 @@ namespace SplitCurves.Testing
         public void DivideCurve_Throw_An_Exception_If_The_Boundary_Is_Open()
         {
             // Assert
-            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.OpenBoundary, splitPlanes));
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.OpenBoundary, SplitPlanes));
             Assert.Equal("Boundary should be closed!", ex.Message);
         }
 
@@ -105,7 +105,7 @@ namespace SplitCurves.Testing
         public void DivideCurve2_Throw_An_Exception_If_The_Boundary_Is_Not_Planar()
         {
             // Assert
-            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve2(CurveCollection.NonPlanarBoundary, splitPlanes));
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve2(CurveCollection.NonPlanarBoundary, SplitPlanes));
             Assert.Equal("Boundary should be Planar!", ex.Message);
         }
     }
