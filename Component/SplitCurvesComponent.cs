@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using SplitCurve.Lib;
+using SplitCurves.Lib;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -33,6 +36,8 @@ namespace SplitCurves.Component
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddCurveParameter("Boundaries", "boundaries", "Closed curves to sub divide.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Angle", "angle", "Azimuth angle to slice given boundaries.", GH_ParamAccess.item, 180);
+            pManager.AddIntegerParameter("Count", "count", "Count of division area.", GH_ParamAccess.item, 4);
         }
 
         /// <summary>
@@ -40,6 +45,7 @@ namespace SplitCurves.Component
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddCurveParameter("Curves", "curves", "Inner curves that created from the splitting action.", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -49,6 +55,25 @@ namespace SplitCurves.Component
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            List<Curve> boundaries = new List<Curve>();
+            double angle = 180;
+            int count = 4;
+            if (!DA.GetDataList<Curve>(0, boundaries) || boundaries.Count == 0) return;
+            if (!DA.GetData<double>(1, ref angle)) return;
+            if (!DA.GetData<int>(2, ref count)) return;
+
+            DataTree<Curve> dataTree = new DataTree<Curve>();
+            int pathIndex = 0;
+            foreach (Curve boundary in boundaries)
+            {
+                IEnumerable<Plane> cutters = DividerCreator.FromAzimuth(boundary, angle, count);
+                IEnumerable<Curve> subCurves = Curves.DivideCurve(boundary, cutters);
+
+                dataTree.AddRange(subCurves, new Grasshopper.Kernel.Data.GH_Path(pathIndex));
+                pathIndex++;
+            }
+
+            DA.SetDataTree(0, dataTree);
         }
 
         /// <summary>
