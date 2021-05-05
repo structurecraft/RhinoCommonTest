@@ -28,11 +28,13 @@ namespace SplitCurves.Plugin
 
 		protected override Result RunCommand(RhinoDoc doc, RunMode mode)
 		{
+            // Gets the boundary.
             var selectedBoundary = RhinoGet.GetOneObject(
                 "Select one closed curve", false, ObjectType.Curve, out ObjRef boundary);
             if (selectedBoundary != Result.Success)
                 return selectedBoundary;
 
+            // Gets the locations where the cuts will be made.
             var getPoint = new GetPoint();
             List<Point3d> pts = new List<Point3d>();
             while (true)
@@ -45,12 +47,13 @@ namespace SplitCurves.Plugin
                 pts.Add(getPoint.Point());
             }
 
-            var getPlaneNormal = new VectorGetter("End point of vector");
+            // Gets the normal, used to generate the planes.
+            var getPlaneNormal = new VectorGetter("End point of vector, representing the normal of the cutting planes.");
             getPlaneNormal.Get();
             if (getPlaneNormal.CommandResult() != Result.Success)
                 return getPlaneNormal.CommandResult();
 
-            Vector3d normal = getPlaneNormal.Point() - getPlaneNormal.m_base;
+            Vector3d normal = getPlaneNormal.Point() - getPlaneNormal.basePt;
 
             List<Plane> planes = new List<Plane>();
             foreach (Point3d pt in pts)
@@ -64,33 +67,33 @@ namespace SplitCurves.Plugin
             {
                 doc.Objects.AddCurve(curve);
             }
-            //doc.Views.Redraw();
+
             return Result.Success;
         }
 
         internal class VectorGetter : GetPoint
         {
-            internal Point3d m_base = Point3d.Origin;
-            internal Line m_line;
+            internal Point3d basePt = Point3d.Origin;
+            internal Line vectorLine;
 
             public VectorGetter(string prompt)
             {
                 this.SetCommandPrompt(prompt);
                 this.AcceptNothing(true);
-                this.SetBasePoint(this.m_base, true);
+                this.SetBasePoint(this.basePt, true);
                 this.MouseMove += new EventHandler<GetPointMouseEventArgs>(this.LocalMouseMove);
                 this.DynamicDraw += new EventHandler<GetPointDrawEventArgs>(this.LocalDynamicDraw);
             }
 
-            private void LocalMouseMove(object sender, GetPointMouseEventArgs e) => this.m_line = new Line(this.m_base, e.Point);
+            private void LocalMouseMove(object sender, GetPointMouseEventArgs e) => this.vectorLine = new Line(this.basePt, e.Point);
 
             private void LocalDynamicDraw(object sender, GetPointDrawEventArgs e)
             {
                 PointStyle previewPointStyle = PointStyle.Circle;
-                e.Display.DrawPoint(this.m_base, previewPointStyle, 10, System.Drawing.Color.DarkBlue);
-                if (!this.m_line.IsValid)
+                e.Display.DrawPoint(this.basePt, previewPointStyle, 5, System.Drawing.Color.DarkBlue);
+                if (!this.vectorLine.IsValid)
                     return;
-                e.Display.DrawArrow(this.m_line, System.Drawing.Color.DarkBlue);
+                e.Display.DrawArrow(this.vectorLine, System.Drawing.Color.DarkBlue);
             }
         }
     }
