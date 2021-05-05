@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SplitCurve.Lib
+namespace SplitCurves.Lib
 {
     public static class DividerCreator
     {

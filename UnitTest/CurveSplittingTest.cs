@@ -8,7 +8,6 @@ using Xunit;
 using FluentAssertions;
 
 using SplitCurves.Lib;
-using SplitCurve.Lib;
 using System.Linq;
 
 namespace SplitCurves.Testing

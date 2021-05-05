@@ -8,7 +8,6 @@ using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 using SplitCurves.Lib;
-using SplitCurve.Lib;
 
 namespace SplitCurves.Plugin
 {

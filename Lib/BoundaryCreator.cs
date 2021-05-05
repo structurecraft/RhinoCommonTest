@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SplitCurve.Lib
+namespace SplitCurves.Lib
 {
     /// <summary>
     /// Creates boundaries for test purposes.
