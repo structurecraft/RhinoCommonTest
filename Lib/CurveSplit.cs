@@ -4,11 +4,11 @@ using Rhino.Geometry;
 
 namespace SplitCurves.Lib
 {
-	public static class Curves
-	{
+    public static class Curves
+    {
 
-		public static IEnumerable<Curve> DivideCurve(Curve boundary, IEnumerable<Plane> planes)
-		{
+        public static IEnumerable<Curve> DivideCurve(Curve boundary, IEnumerable<Plane> planes)
+        {
             // Create planar brep to split later.
             Brep brep = Brep.CreatePlanarBreps(boundary, 10e5).First();
 
@@ -22,7 +22,7 @@ namespace SplitCurves.Lib
             IEnumerable<Curve> newBoundaries = GetBorderCurveFromBreps(subSurfaces);
 
             return newBoundaries;
-		}
+        }
 
         private static IEnumerable<Curve> GetCutters(Curve boundary, IEnumerable<Plane> planes)
         {
@@ -89,7 +89,7 @@ namespace SplitCurves.Lib
                 }
             }
 
-            Curve[] borderCurve = Curve.JoinCurves(curves);
+            Curve[] borderCurve = Curve.JoinCurves(curves, 1);
             return borderCurve[0];
         }
 
