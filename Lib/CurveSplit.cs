@@ -25,38 +25,37 @@ namespace SplitCurves.Lib
             for (int i = 0; i < planes.Count; i++)
             {
                 CurveIntersections intersection = Intersection.CurvePlane(splitBoundary, planes[i], tolerance);
-                if (intersection == null || intersection.Count == 0) continue;
+                if (intersection == null || intersection.Count == 0)
+                {
+                    if (i == planes.Count - 1) crvResult.Add(splitBoundary);
+                    continue;
+                }
 
-                Curve[] crvs = splitBoundary.Split(new double[] { intersection[0].ParameterA, intersection[1].ParameterA });
+                Curve[] crvs = splitBoundary.Split(new double[] {intersection[0].ParameterA, intersection[1].ParameterA});
                 Curve tempCurve = new Line(intersection[0].PointA, intersection[1].PointA).ToNurbsCurve();
 
                 // Close the two halves using the curve generated between the intersection points.
                 // Retrieve the signed distance to understand which side of the plane is the the new boundary.
-                Curve c0 = Curve.JoinCurves(new Curve[] { tempCurve, crvs[0] }, tolerance).First();
+                Curve c0 = Curve.JoinCurves(new Curve[] {tempCurve, crvs[0]}, tolerance).First();
                 double d0 = SignedDistance(planes[i], c0);
 
-                Curve c1 = Curve.JoinCurves(new Curve[] { tempCurve, crvs[1] }, tolerance).First();
+                Curve c1 = Curve.JoinCurves(new Curve[] {tempCurve, crvs[1]}, tolerance).First();
                 double d1 = SignedDistance(planes[i], c1);
 
                 // Collect one boundary and update the other for the next split.
-                if (i == planes.Count - 1)
+                if (d0 < d1)
                 {
-                    crvResult.Add(c0);
+                    splitBoundary = c0;
                     crvResult.Add(c1);
                 }
                 else
                 {
-                    if (d0 < d1)
-                    {
-                        splitBoundary = c0;
-                        crvResult.Add(c1);
-                    }
-                    else
-                    {
-                        splitBoundary = c1;
-                        crvResult.Add(c0);
-                    }
+                    splitBoundary = c1;
+                    crvResult.Add(c0);
                 }
+
+                if (i != planes.Count - 1) continue;
+                crvResult.Add(splitBoundary);
             }
 
             return crvResult;
