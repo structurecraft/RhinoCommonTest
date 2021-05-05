@@ -60,20 +60,72 @@ namespace SplitCurves.Testing
 			this.InterpolatedCurve.Dispose();
         }
 
-        [Fact]
-		public void RectangularCurveSplittingTest()
+		[Theory]
+		[MemberData(nameof(Theories.AngleAndCount), MemberType = typeof(Theories))]
+		public void RectangularCurveSplittingTest(KeyValuePair<double, int> angleAndCount)
 		{
 			// Arrange
 			double boundaryArea = AreaMassProperties.Compute(this.RectangularCurve).Area;
-			IEnumerable<Plane> splitPlanes = DividerCreator.FromAzimuth(this.RectangularCurve, 45, 4);
+			IEnumerable<Plane> splitPlanes = DividerCreator.FromAzimuth(this.RectangularCurve, angleAndCount.Key, angleAndCount.Value);
 
 			// Act
 			IEnumerable<Curve> splitCurves = Curves.DivideCurve(this.RectangularCurve, splitPlanes);
 
 			// Assertions
-			splitCurves.Should().HaveCount(5, "because we divided our curve with 4 planes.");
+			splitCurves.Should().HaveCount(angleAndCount.Value, "because we divided our curve with [angleAndCount.Value - 1] planes.");
 			splitCurves.All(c => c.IsClosed).Should().BeTrue("because DivideCurve have to serve them as closed.");
-			splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e5, "because area summation of divided curves should be equal to source curve.");
+			splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e2, "because area summation of divided curves should be equal to source curve.");
+		}
+
+		[Theory]
+		[MemberData(nameof(Theories.AngleAndCount), MemberType = typeof(Theories))]
+		public void PolylineCurveSplittingTest(KeyValuePair<double, int> angleAndCount)
+		{
+			// Arrange
+			double boundaryArea = AreaMassProperties.Compute(this.PolylineCurve).Area;
+			IEnumerable<Plane> splitPlanes = DividerCreator.FromAzimuth(this.PolylineCurve, angleAndCount.Key, angleAndCount.Value);
+
+			// Act
+			IEnumerable<Curve> splitCurves = Curves.DivideCurve(this.PolylineCurve, splitPlanes);
+
+			// Assertions
+			splitCurves.Should().HaveCount(angleAndCount.Value, "because we divided our curve with [angleAndCount.Value - 1] planes.");
+			splitCurves.All(c => c.IsClosed).Should().BeTrue("because DivideCurve have to serve them as closed.");
+			splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e2, "because area summation of divided curves should be equal to source curve.");
+		}
+
+		[Theory]
+		[MemberData(nameof(Theories.AngleAndCount), MemberType = typeof(Theories))]
+		public void CircleCurveSplittingTest(KeyValuePair<double, int> angleAndCount)
+		{
+			// Arrange
+			double boundaryArea = AreaMassProperties.Compute(this.CircleCurve).Area;
+			IEnumerable<Plane> splitPlanes = DividerCreator.FromAzimuth(this.CircleCurve, angleAndCount.Key, angleAndCount.Value);
+
+			// Act
+			IEnumerable<Curve> splitCurves = Curves.DivideCurve(this.CircleCurve, splitPlanes);
+
+			// Assertions
+			splitCurves.Should().HaveCount(angleAndCount.Value, "because we divided our curve with [angleAndCount.Value - 1] planes.");
+			splitCurves.All(c => c.IsClosed).Should().BeTrue("because DivideCurve have to serve them as closed.");
+			splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e2, "because area summation of divided curves should be equal to source curve.");
+		}
+
+		[Theory]
+		[MemberData(nameof(Theories.AngleAndCount), MemberType = typeof(Theories))]
+		public void InterpolatedCurveSplittingTest(KeyValuePair<double, int> angleAndCount)
+		{
+			// Arrange
+			double boundaryArea = AreaMassProperties.Compute(this.InterpolatedCurve).Area;
+			IEnumerable<Plane> splitPlanes = DividerCreator.FromAzimuth(this.InterpolatedCurve, angleAndCount.Key, angleAndCount.Value);
+
+			// Act
+			IEnumerable<Curve> splitCurves = Curves.DivideCurve(this.InterpolatedCurve, splitPlanes);
+
+			// Assertions
+			splitCurves.Should().HaveCount(angleAndCount.Value, "because we divided our curve with [angleAndCount.Value - 1] planes.");
+			splitCurves.All(c => c.IsClosed).Should().BeTrue("because DivideCurve have to serve them as closed.");
+			splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e2, "because area summation of divided curves should be equal to source curve.");
 		}
 	}
 }
