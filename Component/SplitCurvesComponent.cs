@@ -21,8 +21,8 @@ namespace SplitCurves.Component
 		/// new tabs/panels will automatically be created.
 		/// </summary>
 		public SplitCurvesComponent()
-		  : base("SplitCurves", "/Curve",
-			  "Splits Curves",
+		  : base("SplitCurvesWithPlanes", "SplitCurvesWithPlanes",
+			  "Splits input curves with parallel planes and outputs closed planar loops",
 			  "Geometry", "Curves")
 		{
 		}
@@ -32,6 +32,11 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
 		{
+			/// input Curves to Split
+			pManager.AddCurveParameter("EvaluationCurve", "Eval_Crv", "Curve to Split", GH_ParamAccess.item);
+			/// input Planes used for Spliting Curve
+			pManager.AddPlaneParameter("SplitingPlane", "Split_Pln", "Plane used for spliting", GH_ParamAccess.list);
+		
 		}
 
 		/// <summary>
@@ -39,6 +44,8 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
 		{
+			/// output Closed Loop Curves
+			pManager.AddCurveParameter("ClosedLoopCurves", "Loop_Crv", "Closed Loop Curve derived form Input curve and Spliting Plane", GH_ParamAccess.list);
 		}
 
 		/// <summary>
