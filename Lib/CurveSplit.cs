@@ -63,6 +63,7 @@ namespace SplitCurves.Lib
 
         /// <summary>
         /// Divides curve by a collection of planes.
+        /// This solution is probably heavier, converting curve into Brep and cuts it.
         /// </summary>
         /// <param name="boundary">Closed curve and planar.</param>
         /// <param name="planes">Collection of planes, must be parallel.</param>
@@ -72,6 +73,7 @@ namespace SplitCurves.Lib
         {
             RoutineChecks(boundary, planes);
 
+            // ToDo: if the curve has to be planar this test can be moved inside the RoutineChecks.
             if (!boundary.IsPlanar())
             {
                 throw new Exception("Boundary should be Planar!");
@@ -100,6 +102,8 @@ namespace SplitCurves.Lib
 
         private static double SignedDistance(Plane plane, Curve crv)
         {
+            // The curve has to be planar to compute the centroid.
+            // ToDo replace it averaging a sample of 3 points or just evaluate a point on the curve.
             var m1 = AreaMassProperties.Compute(crv).Centroid;
             Vector3d m1ToOrigin = plane.Origin - m1;
             return m1ToOrigin * plane.Normal;
