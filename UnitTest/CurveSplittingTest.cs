@@ -3,6 +3,7 @@ using Rhino.Geometry;
 using SplitCurves.Lib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,31 +21,40 @@ namespace SplitCurves.Testing
             _testOutput = testOutput;
         }
 
-        private static Curve Boundary => new Rectangle3d(Plane.WorldXY, 5000, 1000).ToNurbsCurve();
+        private static List<Plane> splitPlanes
+        {
+            get
+            {
+                List<Plane> planes = new List<Plane>();
 
-        [Fact]
-        public void SplittingTest()
+                for (int i = 1; i < 5; i++)
+                {
+                    Point3d planeOrigin = new Point3d(i * 3, 0, 0);
+                    Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
+                    planes.Add(splitPlane);
+                }
+
+                return planes;
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CurveCollection.Boundaries), MemberType = typeof(CurveCollection))]
+        public void Cuts_A_Closed_Boundary_Curve_Into_A_Set_Of_Closed_Curves(Curve boundary)
         {
             // Arrange
             int numberOfCuts = 5;
-            double boundaryArea = AreaMassProperties.Compute(Boundary).Area;
-
-            List<Plane> splitPlanes = new List<Plane>();
-
-            for (int i = 1; i < numberOfCuts; i++)
-            {
-                Point3d planeOrigin = new Point3d(i * 500, 0, 0);
-                Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
-                splitPlanes.Add(splitPlane);
-            }
+            double boundaryArea = AreaMassProperties.Compute(boundary).Area;
 
             // Act
-            List<Curve> splitCurves = Curves.DivideCurve(Boundary, splitPlanes);
-            //List<Curve> splitCurves = Curves.DivideCurve2(Boundary, splitPlanes);
+            List<Curve> splitCurves = Curves.DivideCurve(boundary, splitPlanes);
+            List<Curve> splitCurves2 = Curves.DivideCurve2(boundary, splitPlanes);
 
             // Assert
             Assert.Equal<int>(numberOfCuts, splitCurves.Count);
+            Assert.Equal<int>(numberOfCuts, splitCurves2.Count);
             Assert.All<Curve>(splitCurves, result => Assert.True(result.IsClosed));
+            Assert.All<Curve>(splitCurves2, result => Assert.True(result.IsClosed));
 
             double splitAreas = 0;
             foreach (Curve crv in splitCurves)
@@ -64,34 +74,39 @@ namespace SplitCurves.Testing
             List<Plane> nullPlanes = null;
 
             // Assert
-            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, emptyPlanes));
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.CircleBoundary, emptyPlanes));
             Assert.Equal("Input planes is null or empty!", ex.Message);
-            Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, nullPlanes));
+            Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.CircleBoundary, nullPlanes));
         }
 
         [Fact]
         public void DivideCurve_Throw_An_Exception_If_Input_Planes_Are_Not_Parallel()
         {
             // Arrange
-            List<Plane> splitPlanes = new List<Plane>();
-
-            for (int i = 1; i < 4; i++)
-            {
-                Point3d planeOrigin = new Point3d(i * 500, 0, 0);
-                Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
-                splitPlanes.Add(splitPlane);
-            }
-
-            Plane p = splitPlanes[2];
-            p.Rotate(RhinoMath.ToRadians(35), Vector3d.ZAxis, splitPlanes[2].Origin);
-
-            splitPlanes[2] = p;
-
-            _testOutput.WriteLine(splitPlanes[2].Normal.ToString());
+            List<Plane> planes = new List<Plane>(splitPlanes);
+            Plane p = planes[2];
+            p.Rotate(RhinoMath.ToRadians(35), Vector3d.ZAxis, planes[2].Origin);
+            planes[2] = p;
 
             // Assert
-            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(Boundary, splitPlanes));
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.CircleBoundary, planes));
             Assert.Equal("Planes should be parallel!", ex.Message);
+        }
+
+        [Fact]
+        public void DivideCurve_Throw_An_Exception_If_The_Boundary_Is_Open()
+        {
+            // Assert
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve(CurveCollection.OpenBoundary, splitPlanes));
+            Assert.Equal("Boundary should be closed!", ex.Message);
+        }
+
+        [Fact]
+        public void DivideCurve2_Throw_An_Exception_If_The_Boundary_Is_Not_Planar()
+        {
+            // Assert
+            Exception ex = Assert.Throws<Exception>(() => Curves.DivideCurve2(CurveCollection.NonPlanarBoundary, splitPlanes));
+            Assert.Equal("Boundary should be Planar!", ex.Message);
         }
     }
 }

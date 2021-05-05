@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
@@ -18,23 +17,7 @@ namespace SplitCurves.Lib
         /// <returns>A set of closed curve.</returns>
         public static List<Curve> DivideCurve(Curve boundary, List<Plane> planes, double tolerance = 1e-3)
         {
-            if (planes == null || planes.Count == 0)
-            {
-                throw new Exception("Input planes is null or empty!");
-            }
-
-            for (int i = 1; i < planes.Count; i++)
-            {
-                if (planes[0].Normal.IsParallelTo(planes[i].Normal) == 0)
-                {
-                    throw new Exception("Planes should be parallel!");
-                }
-            }
-
-            if (!boundary.IsClosed)
-            {
-                throw new Exception("Boundary should be closed!");
-            }
+            RoutineChecks(boundary, planes);
 
             Curve splitBoundary = boundary;
             List<Curve> crvResult = new List<Curve>();
@@ -88,27 +71,11 @@ namespace SplitCurves.Lib
         /// <returns>A set of closed curve.</returns>
         public static List<Curve> DivideCurve2(Curve boundary, List<Plane> planes, double tolerance = 1e-3)
         {
-            if (planes == null || planes.Count == 0)
-            {
-                throw new Exception("Input planes is null or empty!");
-            }
-
-            for (int i = 1; i < planes.Count; i++)
-            {
-                if (planes[0].Normal.IsParallelTo(planes[i].Normal) == 0)
-                {
-                    throw new Exception("Planes should be parallel!");
-                }
-            }
+            RoutineChecks(boundary, planes);
 
             if (!boundary.IsPlanar())
             {
                 throw new Exception("Boundary should be Planar!");
-            }
-
-            if (!boundary.IsClosed)
-            {
-                throw new Exception("Boundary should be closed!");
             }
 
             // Convert the boundary in a Brep, and extract the face as a BrepFace allowing the use of the split method.
@@ -137,6 +104,30 @@ namespace SplitCurves.Lib
             var m1 = AreaMassProperties.Compute(crv).Centroid;
             Vector3d m1ToOrigin = plane.Origin - m1;
             return m1ToOrigin * plane.Normal;
+        }
+
+        private static void RoutineChecks(Curve boundary, List<Plane> planes)
+        {
+            if (planes == null || planes.Count == 0)
+            {
+                throw new Exception("Input planes is null or empty!");
+            }
+
+            if (planes.Count > 1)
+            {
+                for (int i = 1; i < planes.Count; i++)
+                {
+                    if (planes[0].Normal.IsParallelTo(planes[i].Normal) == 0)
+                    {
+                        throw new Exception("Planes should be parallel!");
+                    }
+                }
+            }
+
+            if (!boundary.IsClosed)
+            {
+                throw new Exception("Boundary should be closed!");
+            }
         }
     }
 }
