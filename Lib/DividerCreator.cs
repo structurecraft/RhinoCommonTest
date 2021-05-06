@@ -35,6 +35,13 @@ namespace SplitCurves.Lib
             return extended.GetPerpendicularFrames(curveParameters);
         }
 
+        /// <summary>
+        /// Gets parameters of curve in order to get perpendicular planes on plane path.
+        /// </summary>
+        /// <param name="domainLength"> Length of the domain which equals to difference between Domain.Max and Domain.Min.</param>
+        /// <param name="domainMinimum"> Minimum parameter of the domain in order to add on it.</param>
+        /// <param name="divisionAreaCount"> Count of division area that want to achieve.</param>
+        /// <returns> Collection of parameters.</returns>
         public static IEnumerable<double> GetCurveParameters(double domainLength, double domainMinimum, int divisionAreaCount)
         {
             double equalSpans = domainLength / divisionAreaCount;
@@ -45,6 +52,12 @@ namespace SplitCurves.Lib
             }
         }
 
+        /// <summary>
+        /// Creates a unit line to extend boundary.
+        /// </summary>
+        /// <param name="point"> First point of the line.</param>
+        /// <param name="azimuthAngle"> Angle between north that line will be parallel on it.</param>
+        /// <returns> Curve through azimuth angle.</returns>
         private static Curve GetAzimuthLine(Point3d point, double azimuthAngle)
         {
             // Get 360 modulo of azimuth in case of user enters more than 360.
