@@ -50,11 +50,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GH_IO, Version=6.34.21034.7001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+    <Reference Include="GH_IO, Version=7.5.21100.3001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Rhino 7\Plug-ins\Grasshopper\GH_IO.dll</HintPath>
     </Reference>
-    <Reference Include="RhinoCommon, Version=6.34.21034.7001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+    <Reference Include="Grasshopper">
+      <HintPath>C:\Program Files\Rhino 7\Plug-ins\Grasshopper\Grasshopper.dll</HintPath>
+    </Reference>
+    <Reference Include="RhinoCommon, Version=7.5.21100.3001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Rhino 7\System\RhinoCommon.dll</HintPath>
     </Reference>
