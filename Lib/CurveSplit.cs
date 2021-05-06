@@ -102,10 +102,8 @@ namespace SplitCurves.Lib
 
         private static double SignedDistance(Plane plane, Curve crv)
         {
-            // The curve has to be planar to compute the centroid.
-            // ToDo replace it averaging a sample of 3 points or just evaluate a point on the curve.
-            var m1 = AreaMassProperties.Compute(crv).Centroid;
-            Vector3d m1ToOrigin = plane.Origin - m1;
+            Point3d ptOnCrv = crv.GetBoundingBox(false).Center;
+            Vector3d m1ToOrigin = plane.Origin - ptOnCrv;
             return m1ToOrigin * plane.Normal;
         }
 

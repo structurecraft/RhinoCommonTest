@@ -77,6 +77,5 @@ namespace SplitCurves.Component
 		/// that use the old ID will partially fail during loading.
 		/// </summary>
 		public override Guid ComponentGuid => new Guid("e7e354c2-012c-4849-a641-9babbe769d67");
-
-	}
+    }
 }
