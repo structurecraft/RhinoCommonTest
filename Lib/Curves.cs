@@ -44,7 +44,7 @@ namespace SplitCurves.Lib
 		{
 			foreach (Curve curve in sourceCurves)
 			{
-				if (curve.IsPlanar() && curve.IsValid && curve.IsInPlane(Plane.WorldXY))
+				if (curve.IsPlanar() && curve.IsValid && curve.IsInPlane(Plane.WorldXY) && curve.IsClosed)
 				{
                     yield return curve;
 				}

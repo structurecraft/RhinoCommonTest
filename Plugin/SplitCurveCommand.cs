@@ -122,9 +122,14 @@ namespace SplitCurves.Plugin
 
                 if (go.Objects().Length > 0)
                 {
+                    // Collect selected curves.
                     selectedCurves = go.Objects().Select(o => o.Curve()).AsEnumerable();
 
-                    foreach (Curve curve in selectedCurves)
+                    // Validate selected curves.
+                    IEnumerable<Curve> validatedCurves = Curves.ValidateForSplitting(selectedCurves);
+
+                    // Create sub boundaries.
+                    foreach (Curve curve in validatedCurves)
                     {
                         IEnumerable<Plane> planes = DividerCreator.FromAzimuth(curve, angle, count);
                         IEnumerable<Curve> subCurves = Curves.DivideCurve(curve, planes);
@@ -135,7 +140,7 @@ namespace SplitCurves.Plugin
                         }
                     }
 
-                    RhinoApp.WriteLine("Curves divided into {0} sub boundaries.", count);
+                    RhinoApp.WriteLine("Curves divided into {0} sub boundaries with {1} azimuth angle.", count, angle);
 
                     doc.Views.Redraw();
                     res = Result.Success;
@@ -197,7 +202,6 @@ namespace SplitCurves.Plugin
         {
             double xDiff = end.X - start.X;
             double yDiff = end.Y - start.Y;
-
             return (360 + Math.Atan2(xDiff, yDiff) * (180 / Math.PI)) % 360;
         }
     }
