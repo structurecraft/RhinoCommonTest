@@ -15,10 +15,6 @@ namespace SplitCurves.Lib
 
 			List<Curve> Plane_Lines = PlaneLines(boundary, planes_N);
 
-			
-			
-			
-
 			return Plane_Lines;
 		}
 
