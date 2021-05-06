@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoundaryCreator.cs" />
-    <Compile Include="CurveSplit.cs" />
+    <Compile Include="Curves.cs" />
     <Compile Include="DividerCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

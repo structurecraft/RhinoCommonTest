@@ -4,11 +4,24 @@ using Rhino.Geometry;
 
 namespace SplitCurves.Lib
 {
+    /// <summary>
+    /// Includes curve related static methods.
+    /// </summary>
     public static class Curves
     {
-
+        /// <summary>
+        /// Divides given boundary into sub boundaries with given planes.
+        /// </summary>
+        /// <param name="boundary"> Closed boundary to slice.</param>
+        /// <param name="planes"> Slicers of boundary.</param>
+        /// <returns> Collection of closed boundaries.</returns>
         public static IEnumerable<Curve> DivideCurve(Curve boundary, IEnumerable<Plane> planes)
         {
+            if (planes == null || planes.Count() == 0)
+			{
+                throw new System.Exception("There are no any planes to split boundary!");
+			}
+
             // Create planar brep to split later.
             Brep brep = Brep.CreatePlanarBreps(boundary, 10e5).First();
 
@@ -18,12 +31,32 @@ namespace SplitCurves.Lib
             // Split brep with cutters.
             IEnumerable<Brep> subSurfaces = brep.Split(cutters, 1);
 
-            // Duplicate borders.
-            IEnumerable<Curve> newBoundaries = GetBorderCurveFromBreps(subSurfaces);
-
-            return newBoundaries;
+            // Duplicate borders from splitted breps.
+            return GetBorderCurveFromBreps(subSurfaces);
         }
 
+        /// <summary>
+        /// Validates curves either appropriate for splitting or not.
+        /// </summary>
+        /// <param name="sourceCurves"> Will be queried curves.</param>
+        /// <returns> Collection of appropriate curves.</returns>
+        public static IEnumerable<Curve> ValidateForSplitting(IEnumerable<Curve> sourceCurves)
+		{
+			foreach (Curve curve in sourceCurves)
+			{
+				if (curve.IsPlanar() && curve.IsValid && curve.IsInPlane(Plane.WorldXY))
+				{
+                    yield return curve;
+				}
+			}
+		}
+
+        /// <summary>
+        /// Creates extended cutter curves from planes.
+        /// </summary>
+        /// <param name="boundary"> Closed boundary to slice.</param>
+        /// <param name="planes"> Slicers of boundary.</param>
+        /// <returns></returns>
         private static IEnumerable<Curve> GetCutters(Curve boundary, IEnumerable<Plane> planes)
         {
             foreach (Plane plane in planes)
@@ -42,6 +75,11 @@ namespace SplitCurves.Lib
             }
         }
 
+        /// <summary>
+        /// Creates curve parallel to Y-axis of plane.
+        /// </summary>
+        /// <param name="plane"> Source plane.</param>
+        /// <returns> Curve that parallel to Y-axis of plane.</returns>
         private static Curve GetCutter(Plane plane)
         {
             // Initialize transfrom
@@ -54,6 +92,11 @@ namespace SplitCurves.Lib
             return new LineCurve(plane.Origin, movedPoint);
         }
 
+        /// <summary>
+        /// Creates border curves from breps.
+        /// </summary>
+        /// <param name="breps"> Collection of source breps.</param>
+        /// <returns> Collection of borders.</returns>
         private static IEnumerable<Curve> GetBorderCurveFromBreps(IEnumerable<Brep> breps)
         {
             foreach (Brep brep in breps)
@@ -89,8 +132,8 @@ namespace SplitCurves.Lib
                 }
             }
 
-            Curve[] borderCurve = Curve.JoinCurves(curves, 1);
-            return borderCurve[0];
+           IEnumerable<Curve> borderCurve = Curve.JoinCurves(curves, 1).AsEnumerable();
+            return borderCurve.First();
         }
 
     }
