@@ -61,14 +61,20 @@ namespace SplitCurves.Plugin
                 planes.Add(new Plane(pt, normal));
             }
 
-            var crv = Curves.DivideCurve(boundary.Curve(), planes, doc.ModelAbsoluteTolerance);
-
-            foreach (var curve in crv)
+            try
             {
-                doc.Objects.AddCurve(curve);
+                var crv = Curves.DivideCurve(boundary.Curve(), planes, doc.ModelAbsoluteTolerance);
+                foreach (var curve in crv)
+                {
+                    doc.Objects.AddCurve(curve);
+                }
+                return Result.Success;
             }
-
-            return Result.Success;
+            catch (Exception e)
+            {
+                RhinoApp.WriteLine($"SplitCurve failed: {e.Message}");
+                return Result.Failure;
+            }
         }
 
         internal class VectorGetter : GetPoint
