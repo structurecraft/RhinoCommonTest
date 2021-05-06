@@ -16,6 +16,8 @@ namespace SplitCurves.Lib
 			List<Curve> Plane_Lines = PlaneLines(boundary, planes_N);
 
 			return Plane_Lines;
+
+			
 		}
 
 		public static List<Plane> PlaneNormalDirectionCheck(List<Plane> planes)
@@ -66,15 +68,21 @@ namespace SplitCurves.Lib
             {
 				Rhino.Geometry.Intersect.CurveIntersections X = Rhino.Geometry.Intersect.Intersection.CurvePlane(boundary, planes_N[i], 0.01);
 
-				if(X.Count == 2 )
-                {
-					Line CurrentLine = new Line(X[0].PointA, X[1].PointA);
-					PlaneLines.Add(CurrentLine.ToNurbsCurve());
+
+				if (X != null)
+				{ 
+					if (X.Count == 2)
+					{
+						Line CurrentLine = new Line(X[0].PointA, X[1].PointA);
+						PlaneLines.Add(CurrentLine.ToNurbsCurve());
+					}
+					else
+					{
+						PlaneLines.Add(null);
+					}
+
 				}
-				else
-                {
-					PlaneLines.Add(null);
-				}
+				
 			}
 
 			return PlaneLines;
