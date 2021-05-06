@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Display;
@@ -54,12 +55,7 @@ namespace SplitCurves.Plugin
                 return getPlaneNormal.CommandResult();
 
             Vector3d normal = getPlaneNormal.Point() - getPlaneNormal.basePt;
-
-            List<Plane> planes = new List<Plane>();
-            foreach (Point3d pt in pts)
-            {
-                planes.Add(new Plane(pt, normal));
-            }
+            List<Plane> planes = pts.Select(pt => new Plane(pt, normal)).ToList();
 
             try
             {
