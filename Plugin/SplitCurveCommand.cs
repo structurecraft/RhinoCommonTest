@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using Rhino;
+﻿using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 using SplitCurves.Lib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SplitCurves.Plugin
 {
@@ -15,7 +15,11 @@ namespace SplitCurves.Plugin
     {
         private const double AngleDefault = 180;
         private const int CountDefault = 4;
-        private const bool DrawDefault = false;
+        private const bool SlicerDefault = false;
+
+        private Point3d SlicerStartPoint { get; set; } = Point3d.Origin;
+
+        private Line Slicer { get; set; }
 
         public SplitCurveCommand()
         {
@@ -35,7 +39,7 @@ namespace SplitCurves.Plugin
             // Get persistent settings from Registry if set previously
             double angle = Settings.GetDouble("SplitCommandAngle", AngleDefault);
             int count = Settings.GetInteger("SplitCommandCount2", CountDefault);
-            bool draw = Settings.GetBool("SplitCommandDraw", DrawDefault);
+            bool slicer = Settings.GetBool("SplitCommandSlicer", SlicerDefault);
 
             var go = new GetObject();
             go.SetCommandPrompt("Select curve(s) to split");
@@ -51,14 +55,70 @@ namespace SplitCurves.Plugin
 
                 OptionDouble angleOpt = new OptionDouble(angle);
                 OptionInteger countOpt = new OptionInteger(count);
-                OptionToggle drawOpt = new OptionToggle(draw, "Off", "On");
+                OptionToggle slicerOpt = new OptionToggle(slicer, "Off", "On");
 
                 var angleIndex = go.AddOptionDouble("Angle", ref angleOpt);
                 var countIndex = go.AddOptionInteger("Count", ref countOpt);
-                var drawIndex = go.AddOptionToggle("Draw", ref drawOpt);
+                var slicerIndex = go.AddOptionToggle("Draw", ref slicerOpt);
                 var resetIndex = go.AddOption("Reset");
 
                 go.GetMultiple(1, 100);
+
+                // If draw enabled, user draw line to grab an azimuth angle from it.
+                if (slicer)
+                {
+                    var getPoint = new GetPoint();
+                    List<Point3d> startEndPoints = new List<Point3d>();
+
+                    bool startPointSelected = false;
+                    bool endPointSelected = false;
+
+                    while (true)
+                    {
+                        if (!startPointSelected)
+                        {
+                            getPoint.SetCommandPrompt("Click starting point of slicer.");
+                            getPoint.AcceptNothing(true);
+                            getPoint.AcceptPoint(true);
+                            getPoint.Get();
+                            
+                            if (getPoint.CommandResult() != Result.Success)
+                                break;
+                            
+                            startEndPoints.Add(getPoint.Point());
+                            this.SlicerStartPoint = getPoint.Point();
+
+                            startPointSelected = true;
+
+                            // Subscribe interactive events.
+                            getPoint.MouseMove += new EventHandler<GetPointMouseEventArgs>(this.OnMouseMove);
+                            getPoint.DynamicDraw += new EventHandler<GetPointDrawEventArgs>(this.OnDynamicDraw);
+                        }
+                        else if (startPointSelected && !endPointSelected)
+                        {
+                            getPoint.SetCommandPrompt("Click end point of slicer.");
+                            getPoint.AcceptNothing(true);
+                            getPoint.AcceptPoint(true);
+                            getPoint.Get();
+                            
+                            if (getPoint.CommandResult() != Result.Success)
+                                break;
+                            
+                            startEndPoints.Add(getPoint.Point());
+                            Slicer = new Line(startEndPoints.First(), startEndPoints.Last());
+                            endPointSelected = true;
+                        }
+                        else if (startPointSelected && endPointSelected)
+                        {
+                            // Ready to process
+                            angle = CalculateAzimuthAngle(startEndPoints.First(), startEndPoints.Last());
+
+                            // Command should be success if azimuth calculated.
+                            res = Result.Success;
+                            break;
+                        }
+                    }
+                }
 
                 if (go.Objects().Length > 0)
                 {
@@ -93,15 +153,15 @@ namespace SplitCurves.Plugin
                         {
                             count = countOpt.CurrentValue;
                         }
-                        else if (option.Index == drawIndex)
+                        else if (option.Index == slicerIndex)
                         {
-                            draw = drawOpt.CurrentValue;
+                            slicer = slicerOpt.CurrentValue;
                         }
                         else if (option.Index == resetIndex)
                         {
                             angle = AngleDefault;
                             count = CountDefault;
-                            draw = DrawDefault;
+                            slicer = SlicerDefault;
                         }
                     }
                     continue;
@@ -115,10 +175,30 @@ namespace SplitCurves.Plugin
                 // Set persistent settings to Registry
                 Settings.SetDouble("SplitCommandAngle", angle);
                 Settings.SetInteger("SplitCommandCount2", count);
-                Settings.SetBool("SplitCommandDraw", draw);
+                Settings.SetBool("SplitCommandSlicer", slicer);
             }
 
             return res;
+        }
+
+        private void OnMouseMove(object sender, GetPointMouseEventArgs e)
+        {
+            this.Slicer = new Line(this.SlicerStartPoint, e.Point);
+        }
+
+        private void OnDynamicDraw(object sender, GetPointDrawEventArgs e)
+        {
+            if (!this.Slicer.IsValid)
+                return;
+            e.Display.DrawDottedLine(this.Slicer, System.Drawing.Color.Black);
+        }
+
+        private double CalculateAzimuthAngle(Point3d start, Point3d end)
+        {
+            double xDiff = end.X - start.X;
+            double yDiff = end.Y - start.Y;
+
+            return (360 + Math.Atan2(xDiff, yDiff) * (180 / Math.PI)) % 360;
         }
     }
 }
