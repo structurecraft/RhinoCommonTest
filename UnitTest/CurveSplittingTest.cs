@@ -2,7 +2,6 @@
 using System;
 
 using Rhino.Geometry;
-using Rhino;
 
 using Xunit;
 using FluentAssertions;
@@ -125,6 +124,19 @@ namespace SplitCurves.Testing
             splitCurves.Should().HaveCount(angleAndCount.Value, "because we divided our curve with [angleAndCount.Value - 1] planes.");
             splitCurves.All(c => c.IsClosed).Should().BeTrue("because DivideCurve have to serve them as closed.");
             splitCurves.Sum(c => AreaMassProperties.Compute(c).Area).Should().BeApproximately(boundaryArea, 10e2, "because area summation of divided curves should be equal to source curve.");
+        }
+
+        [Fact]
+        public void ThrowNoAnyPlaneError()
+		{
+            // Arrange
+            List<Plane> splitPlanes = new List<Plane>();
+
+            // Act
+            Action act = () => Curves.DivideCurve(this.RectangularCurve, splitPlanes);
+
+            // Assert
+            act.Should().Throw<Exception>().WithMessage("There are no any planes to split boundary!");
         }
     }
 }
