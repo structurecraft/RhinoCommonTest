@@ -37,10 +37,10 @@ namespace SplitCurves.Lib
                 // Close the two halves using the curve generated between the intersection points.
                 // Retrieve the signed distance to understand which side of the plane is the the new boundary.
                 Curve c0 = Curve.JoinCurves(new Curve[] {tempCurve, crvs[0]}, tolerance).First();
-                double d0 = SignedDistance(planes[i], c0);
+                double d0 = Utility.SignedDistance(planes[i], c0);
 
                 Curve c1 = Curve.JoinCurves(new Curve[] {tempCurve, crvs[1]}, tolerance).First();
-                double d1 = SignedDistance(planes[i], c1);
+                double d1 = Utility.SignedDistance(planes[i], c1);
 
                 // Collect one boundary and update the other for the next split.
                 if (d0 < d1)
@@ -63,7 +63,7 @@ namespace SplitCurves.Lib
 
         /// <summary>
         /// Divides curve by a collection of planes.
-        /// This solution is probably heavier, converting curve into Brep and cuts it.
+        /// This solution is probably heavier, converting curve into Brep and cuts it, and required boundary to be closed and planar.
         /// </summary>
         /// <param name="boundary">Closed curve and planar.</param>
         /// <param name="planes">Collection of planes, must be parallel.</param>
@@ -100,13 +100,9 @@ namespace SplitCurves.Lib
             return spitBrep.Faces.Select(face => Curve.JoinCurves(face.DuplicateFace(false).Edges, tolerance)).Select(s => s.First()).ToList();
         }
 
-        private static double SignedDistance(Plane plane, Curve crv)
-        {
-            Point3d ptOnCrv = crv.GetBoundingBox(false).Center;
-            Vector3d m1ToOrigin = plane.Origin - ptOnCrv;
-            return m1ToOrigin * plane.Normal;
-        }
-
+        /// <summary>
+        /// Routine checks to verify the quality of the inputs.
+        /// </summary>
         private static void RoutineChecks(Curve boundary, List<Plane> planes)
         {
             if (planes == null || planes.Count == 0)
