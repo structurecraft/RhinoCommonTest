@@ -14,11 +14,11 @@ namespace SplitCurves.Plugin
 {
 	public class SplitCurveCommand : Command
 	{
-		public SplitCurveCommand()
+        public SplitCurveCommand()
 		{
 			// Rhino only creates one instance of each command class defined in a
 			// plug-in, so it is safe to store a refence in a static property.
-			Instance = this;
+            Instance = this;
 		}
 
 		///<summary>The only instance of this command.</summary>
@@ -47,9 +47,9 @@ namespace SplitCurves.Plugin
                     break;
                 pts.Add(getPoint.Point());
             }
-
+            
             // Gets the normal, used to generate the planes.
-            var getPlaneNormal = new VectorGetter("End point of vector, representing the normal of the cutting planes.");
+            var getPlaneNormal = new GetVector("End point of vector, representing the normal of the cutting planes.");
             getPlaneNormal.Get();
             if (getPlaneNormal.CommandResult() != Result.Success)
                 return getPlaneNormal.CommandResult();
@@ -70,32 +70,6 @@ namespace SplitCurves.Plugin
             {
                 RhinoApp.WriteLine($"SplitCurve failed: {e.Message}");
                 return Result.Failure;
-            }
-        }
-
-        internal class VectorGetter : GetPoint
-        {
-            internal Point3d basePt = Point3d.Origin;
-            internal Line vectorLine;
-
-            public VectorGetter(string prompt)
-            {
-                this.SetCommandPrompt(prompt);
-                this.AcceptNothing(true);
-                this.SetBasePoint(this.basePt, true);
-                this.MouseMove += new EventHandler<GetPointMouseEventArgs>(this.LocalMouseMove);
-                this.DynamicDraw += new EventHandler<GetPointDrawEventArgs>(this.LocalDynamicDraw);
-            }
-
-            private void LocalMouseMove(object sender, GetPointMouseEventArgs e) => this.vectorLine = new Line(this.basePt, e.Point);
-
-            private void LocalDynamicDraw(object sender, GetPointDrawEventArgs e)
-            {
-                PointStyle previewPointStyle = PointStyle.Circle;
-                e.Display.DrawPoint(this.basePt, previewPointStyle, 5, System.Drawing.Color.DarkBlue);
-                if (!this.vectorLine.IsValid)
-                    return;
-                e.Display.DrawArrow(this.vectorLine, System.Drawing.Color.DarkBlue);
             }
         }
     }
