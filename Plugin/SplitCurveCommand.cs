@@ -55,11 +55,13 @@ namespace SplitCurves.Plugin
 
 			List<Curve> LoopCurve = SplitCurves.Lib.Curves.DivideCurve(eval_Crv.Curve(), plane);
 
-			Rhino.DocOb
-
-			
-
-
+			foreach (Curve crv in LoopCurve )
+            {
+				if (doc.Objects.AddCurve(crv) != System.Guid.Empty )
+                {
+					doc.Objects.AddCurve(crv);
+                }
+			}
 
 			return Result.Success;
 		}
