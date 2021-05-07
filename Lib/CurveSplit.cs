@@ -16,43 +16,42 @@ namespace SplitCurves.Lib
 
 			List<Plane> planes_NS = PlanesinOrder(planes_N);
 
-			DataTree<Curve> Plane_Lines = PlaneLines(boundary, planes);
+			//DataTree<Curve> Plane_Lines = PlaneLines(boundary, planes);
 
-			List<Curve> Final_Loops = new List<Curve>();
+			//List<Brep> Splits = SurfaceSplits(boundary, planes);
 
-			for (int i = 0; i < Plane_Lines.BranchCount;i++)
-            {
-				Curve[] Curve = Rhino.Geometry.Curve.JoinCurves( Plane_Lines.Branch(i));
-				Final_Loops.Add(Curve[0]);
-			}
+			//List<Curve> Split_Loops = SplitLoops(Splits);
+
+			Brep[] Cutter_Splits = SplitingBrep(boundary, planes);
+
+			List<Curve> Split_Loops = CutterSplitLoops(Cutter_Splits);
 
 
+			return Split_Loops;
 
-			return Final_Loops;
 
-			
 		}
 
 		public static List<Plane> PlaneNormalDirectionCheck(List<Plane> planes)
-        {
-			
-			
+		{
+
+
 			List<Plane> planes_N = new List<Plane>();
 			if (planes.Count > 1)
-            {
+			{
 				Plane Plane_Ref = planes[0];
 
 				for (int i = 0; i < planes.Count; i++)
-                {
+				{
 					Plane Current_Plane = planes[i];
 
-					if (Vector3d.Multiply(Plane_Ref.ZAxis,Current_Plane.ZAxis) > 0)
-                    {
+					if (Vector3d.Multiply(Plane_Ref.ZAxis, Current_Plane.ZAxis) > 0)
+					{
 						planes_N.Add(Current_Plane);
 						//Pln_CP.Add(Current_Plane.Origin);
 					}
 					else
-                    {
+					{
 						Current_Plane.Flip();
 						planes_N.Add(Current_Plane);
 						//Pln_CP.Add(Current_Plane.Origin);
@@ -64,7 +63,7 @@ namespace SplitCurves.Lib
 
 			}
 			else
-            {
+			{
 				if (planes.Count != 0)
 				{
 					planes_N.Add(planes[0]);
@@ -73,23 +72,23 @@ namespace SplitCurves.Lib
 					return planes_N;
 				}
 				else
-                {
+				{
 					return null;
-                }
+				}
 
-            }
+			}
 
 		}
 
 		public static List<Plane> PlanesinOrder(List<Plane> plane_N)
-        {
+		{
 			List<Point3d> Pln_CP = new List<Point3d>();
 			foreach (Plane pl in plane_N)
-            {
+			{
 				Pln_CP.Add(pl.Origin);
 			}
 
-			PointCloud pt_Cld = new PointCloud( Pln_CP);
+			PointCloud pt_Cld = new PointCloud(Pln_CP);
 
 
 
@@ -112,7 +111,7 @@ namespace SplitCurves.Lib
 
 			}
 			if (Pln_CP.Count > 1)
-            {
+			{
 				Line Plane_Centeral_Line = new Line(EndPoints[0], EndPoints[1]);
 
 				List<double> Line_t = new List<double>();
@@ -139,13 +138,89 @@ namespace SplitCurves.Lib
 
 			}
 			else
-            {
+			{
 				return plane_N;
 
 			}
 
-			
+
 		}
+
+
+		public static Brep SplitingBrep(Curve boundary, List<Plane> planes_NS)
+		{
+			Brep[] brep = Rhino.Geometry.Brep.CreatePlanarBreps(boundary, 0.001);
+
+			List<Curve> PlaneLines = new List<Curve>();
+
+			List<double> split_t = new List<double>();
+
+			//List<Curve> Loops_L = new List<Curve>();
+			DataTree<Curve> Loops = new DataTree<Curve>();
+
+			Brep cutter = new Rhino.Geometry.Brep();
+
+			for (int i = 0; i < planes_NS.Count; i++)
+			{
+
+				Curve[] Crv_Pln_X;
+
+				Point3d[] Crv_Pln_pt;
+
+				BoundingBox brepbox = brep[0].GetBoundingBox(true);
+
+				double max_dist = brepbox.Diagonal.Length;
+
+				Rectangle3d Plane_rect = new Rectangle3d(planes_NS[i], max_dist, max_dist);
+
+				Line rect_line = new Line(Plane_rect.Center, planes_NS[i].Origin);
+
+				Plane_rect.Transform(Rhino.Geometry.Transform.Translation(rect_line.Direction));
+
+				Brep[] Plane_brep = Rhino.Geometry.Brep.CreatePlanarBreps(Plane_rect.ToNurbsCurve(), 0.001);
+
+
+				Rhino.Geometry.Intersect.Intersection.BrepBrep(brep[0], Plane_brep[0], 0.001, out Crv_Pln_X, out Crv_Pln_pt);
+
+
+
+				cutter.Append(Plane_brep[0]);
+
+			}
+
+			Brep[] cutter_Splits = brep[0].Split(cutter, 0.01);
+
+			return cutter_Splits;
+
+		}
+
+		public static List<Curve> CutterSplitLoops(Brep [] Cutter_Splits)
+		{
+			List<Curve> Split_Loops = new List<Curve>();
+
+			List<double> area = new List<double>();
+
+			Rhino.Geometry.colle Cutter_Splits[0].Faces;
+
+			foreach (Brep splits_i in Splits)
+			{
+				area.Add(splits_i.GetArea());
+
+				Surface Current_Surf = splits_i.Faces[0].DuplicateSurface();
+
+				Curve[] EdgeCurve = Current_Surf.ToBrep().DuplicateEdgeCurves();
+
+				Curve[] EdgeCurve_J = Rhino.Geometry.Curve.JoinCurves(EdgeCurve);
+
+				Split_Loops.Add(EdgeCurve_J[0]);
+			}
+
+			return Split_Loops;
+
+		}
+
+
+		/*
 
 		public static DataTree<Curve> PlaneLines(Curve boundary, List<Plane> planes_NS)
         {
@@ -157,6 +232,8 @@ namespace SplitCurves.Lib
 
 			//List<Curve> Loops_L = new List<Curve>();
 			DataTree<Curve> Loops = new DataTree<Curve>();
+
+			Brep cutter = new Rhino.Geometry.Brep();
 
 			for (int i = 0; i < planes_NS.Count; i++)
             {
@@ -181,6 +258,19 @@ namespace SplitCurves.Lib
 				Rhino.Geometry.Intersect.Intersection.BrepBrep(brep[0], Plane_brep[0], 0.001, out Crv_Pln_X, out Crv_Pln_pt);
 
 				
+				
+				cutter.Append(Plane_brep[0]);
+
+
+
+
+
+
+				
+
+
+				brep[0].Split(cutter, 0.01);
+
 
 				if (Crv_Pln_X.Length > 0)
                 {
@@ -305,7 +395,121 @@ namespace SplitCurves.Lib
 
 			return Loops;
         }
+		
+		public static List<Brep> SurfaceSplits(Curve boundary, List<Plane> planes)
+        {
 
+			Brep[] brep = Rhino.Geometry.Brep.CreatePlanarBreps(boundary, 0.001);
+
+			List<Curve> PlaneLines = new List<Curve>();
+
+			List<double> split_t = new List<double>();
+
+			List<Brep> Split_Breps = new List<Brep>();
+
+
+			if (planes.Count > 1)
+			{
+				for (int i = 0; i < planes.Count - 1; i++)
+				{
+					Plane first_plane = planes[i];
+					Plane second_plane = planes[i + 1];
+
+					List<Curve> boundary_splits_A = new List<Curve>();
+					List<Curve> boundary_splits_B = new List<Curve>();
+
+					//List<Curve> Loops_L = new List<Curve>();
+					DataTree<Curve> Loops = new DataTree<Curve>();
+
+					Line Center_Line = new Line(first_plane.Origin, second_plane.Origin);
+
+					Point3d Center_Point = Center_Line.PointAt(0.5);
+
+					Vector3d first_Vector = new Line(Center_Point, first_plane.Origin).UnitTangent;
+					Vector3d second_Vector = new Line(Center_Point, second_plane.Origin).UnitTangent;
+
+
+					
+					if (Vector3d.Multiply(first_plane.ZAxis, first_Vector) > 0)
+                    {
+						brep[0].Trim(first_plane, 0.01);
+
+						if(Vector3d.Multiply(second_plane.ZAxis, second_Vector) > 0)
+                        {
+								
+							
+							brep[0].Trim(second_plane, 0.01);
+
+							double d = brep[0].GetArea();
+
+							Split_Breps.Add(brep[0]);
+						}
+						else
+                        {
+							second_plane.Flip();
+							brep[0].Trim(second_plane, 0.01);
+
+							double d = brep[0].GetArea();
+
+							Split_Breps.Add(brep[0]);
+						}
+					}
+
+					else
+                    {
+						first_plane.Flip();
+						brep[0].Trim(first_plane, 0.01);
+
+						if (Vector3d.Multiply(second_plane.ZAxis, second_Vector) > 0)
+						{
+							brep[0].Trim(second_plane, 0.01);
+
+							double d = brep[0].GetArea();
+
+							Split_Breps.Add(brep[0]);
+						}
+						else
+						{
+							second_plane.Flip();
+							brep[0].Trim(second_plane, 0.01);
+
+							double d = brep[0].GetArea();
+
+							Split_Breps.Add(brep[0]);
+						}
+					}
+				}
+			}
+
+			return Split_Breps;
+
+		}
+
+		
+		public static List<Curve> SplitLoops(List<Brep> Splits)
+        {
+			List<Curve> Split_Loops = new List<Curve>();
+
+			List<double> area =new List<double>();
+
+			foreach (Brep splits_i in Splits)
+			{
+				area.Add(splits_i.GetArea());
+
+				Surface Current_Surf = splits_i.Faces[0].DuplicateSurface();
+
+				Curve[] EdgeCurve = Current_Surf.ToBrep().DuplicateEdgeCurves();
+
+				Curve[] EdgeCurve_J = Rhino.Geometry.Curve.JoinCurves(EdgeCurve);
+
+				Split_Loops.Add(EdgeCurve_J[0]);
+			}
+
+			return Split_Loops;
+        }
+
+	
+		
 		public static List<Curve> CurveSelect(List<Curve> boundary_splits,Plane first_plane,Plane Second_plane)
         {
 			List<Curve> S_Curve = new List<Curve>();
@@ -336,13 +540,13 @@ namespace SplitCurves.Lib
 						S_Curve.Add(crv);
 						//return crv;
 
-						/*
+						
 						Loops.Add(crv, new Grasshopper.Kernel.Data.GH_Path(i));
 
 						Loops.Add(PlaneLines[i], new Grasshopper.Kernel.Data.GH_Path(i));
 
 						Loops.Add(PlaneLines[i + 1], new Grasshopper.Kernel.Data.GH_Path(i));
-						*/
+						
 
 						
 					}
@@ -352,5 +556,7 @@ namespace SplitCurves.Lib
 			}
 			return S_Curve;
 		}
+		*/
 	}
+	
 }
