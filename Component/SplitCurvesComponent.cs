@@ -62,8 +62,15 @@ namespace SplitCurves.Component
             RhinoDoc activeDoc = RhinoDoc.ActiveDoc;
             double tolerance = activeDoc.ModelAbsoluteTolerance;
 
-            DA.SetDataList(0, Curves.DivideCurve(boundary, pls, tolerance));
-		}
+            try
+            {
+                DA.SetDataList(0, Curves.DivideCurve(boundary, pls, tolerance));
+			}
+            catch (Exception e)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
+            }
+        }
 
 		/// <summary>
 		/// Provides an Icon for every component that will be visible in the User Interface.
