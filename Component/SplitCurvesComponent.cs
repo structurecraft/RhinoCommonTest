@@ -103,6 +103,7 @@ namespace SplitCurves.Component
 		{
 			get
 			{
+				
 				//return Resources.IconForThisComponent;
 				return null;
 			}
