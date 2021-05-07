@@ -16,13 +16,19 @@ namespace SplitCurves.Lib
 
 			List<Plane> planes_NS = PlanesinOrder(planes_N);
 
-			List<Curve> Plane_Lines = PlaneLines(boundary, planes);
+			DataTree<Curve> Plane_Lines = PlaneLines(boundary, planes);
 
-			
+			List<Curve> Final_Loops = new List<Curve>();
+
+			for (int i = 0; i < Plane_Lines.BranchCount;i++)
+            {
+				Curve[] Curve = Rhino.Geometry.Curve.JoinCurves( Plane_Lines.Branch(i));
+				Final_Loops.Add(Curve[0]);
+			}
 
 
 
-			return Plane_Lines;
+			return Final_Loops;
 
 			
 		}
@@ -105,49 +111,52 @@ namespace SplitCurves.Lib
 				}
 
 			}
+			if (Pln_CP.Count > 1)
+            {
+				Line Plane_Centeral_Line = new Line(EndPoints[0], EndPoints[1]);
 
-			Line Plane_Centeral_Line = new Line(EndPoints[0], EndPoints[1]);
+				List<double> Line_t = new List<double>();
 
-			List<double> Line_t = new List<double>();
+				foreach (Point3d pt in Pln_CP)
+				{
+					double t;
+					Plane_Centeral_Line.ToNurbsCurve().ClosestPoint(pt, out t);
+					Line_t.Add(t);
+				}
 
-			foreach (Point3d pt in Pln_CP)
-			{
-				double t;
-				Plane_Centeral_Line.ToNurbsCurve().ClosestPoint(pt, out t);
-				Line_t.Add(t);
+				List<double> Line_t_Sort = new List<double>(Line_t);
+
+				List<Plane> planes_NS = new List<Plane>();
+
+				Line_t_Sort.Sort();
+				foreach (double t in Line_t_Sort)
+				{
+					Plane Current_Plane = plane_N[Line_t.IndexOf(t)];
+					planes_NS.Add(Current_Plane);
+				}
+
+				return planes_NS;
+
+			}
+			else
+            {
+				return plane_N;
+
 			}
 
-			List<double> Line_t_Sort = new List<double>(Line_t);
-
-			List<Plane> planes_NS = new List<Plane>();
-
-			Line_t_Sort.Sort();
-			foreach (double t in Line_t_Sort)
-			{
-				Plane Current_Plane = plane_N[Line_t.IndexOf(t)];
-				planes_NS.Add(Current_Plane);
-			}
-
-			return planes_NS;
+			
 		}
 
-		public static List<Curve> PlaneLines(Curve boundary, List<Plane> planes_NS)
+		public static DataTree<Curve> PlaneLines(Curve boundary, List<Plane> planes_NS)
         {
 			Brep[] brep = Rhino.Geometry.Brep.CreatePlanarBreps(boundary,0.001);
 
-			
-
-			
-			
 			List<Curve> PlaneLines = new List<Curve>();
 
 			List<double> split_t = new List<double>();
 
-			List<Curve> Loops = new List<Curve>();
-
-
-
-
+			//List<Curve> Loops_L = new List<Curve>();
+			DataTree<Curve> Loops = new DataTree<Curve>();
 
 			for (int i = 0; i < planes_NS.Count; i++)
             {
@@ -171,91 +180,34 @@ namespace SplitCurves.Lib
 
 				Rhino.Geometry.Intersect.Intersection.BrepBrep(brep[0], Plane_brep[0], 0.001, out Crv_Pln_X, out Crv_Pln_pt);
 
-
+				
 
 				if (Crv_Pln_X.Length > 0)
                 {
-					
 				
 					PlaneLines.Add(Crv_Pln_X[0]);
 
-					
-					
-				}
+					double St_t;
+					double Ed_t;
+
+					boundary.ClosestPoint(Crv_Pln_X[0].PointAtStart,out St_t);
+					boundary.ClosestPoint(Crv_Pln_X[0].PointAtEnd, out Ed_t);
+
+					split_t.Add(St_t);
+					split_t.Add(Ed_t);
 
 
-				/*
-				if (X != null)
-				{ 
-					if (X.Count == 2)
-					{
-						split_t.Add(X[0].ParameterA);
-						split_t.Add(X[1].ParameterA);
 
-						Line CurrentLine = new Line(X[0].PointA, X[1].PointA);
-						PlaneLines.Add(CurrentLine.ToNurbsCurve());
-					}
-					else
-					{
-						PlaneLines.Add(null);
-					}
-
-				}
-				*/
-				foreach( Curve crv in PlaneLines)
-                {
-					brep[0].AddTrimCurve(crv);
 
 				}
 
-
-				Rhino.Geometry.Collections.BrepTrimList trims = brep[0].Trims;
-
 				
 
+				IEnumerable<double> X = split_t;
 
-				foreach (BrepTrim face in trims)
-                {
-					BrepLoop trimedges = face.Loop;
-
-					//Curve[] Joined_Crv = Rhino.Geometry.Curve.JoinCurves(trimedges);
-
-					trimedges.To3dCurve();
-
-					Loops.Add(trimedges.To3dCurve());
-				}
-				
-				
-				/*
-				Brep[] brep_spl = brep[0].Split(PlaneLines,0.001);
 
 				
-
-				foreach (Brep item in brep_spl)
-                {
-					Curve[] Joined_Crv =  Rhino.Geometry.Curve.JoinCurves(item.Edges);
-
-					Loops.Add(Joined_Crv[0]);
-
-				}
 				
-
-				
-
-				Rhino.Geometry.Collections.BrepLoopList brepLoops = brep_spl[0].Loops;
-
-				PlaneLines.Add(brepLoops[0].To3dCurve());
-
-				
-				foreach (Brep brep_i in brep_spl)
-                {
-					brep_i.Edges;
-                }
-
-				
-				DataTree<Curve> Loops = new DataTree<Curve>();
-
-				Curve[] boundary_splits = boundary.Split(split_t);
 
 				if (planes_NS.Count > 1)
                 {
@@ -264,44 +216,80 @@ namespace SplitCurves.Lib
 						Plane first_plane = planes_NS[i];
 						Plane second_plane = planes_NS[i + 1];
 
-						foreach (Curve crv in boundary_splits)
+						List<Curve> boundary_splits_A = new List<Curve>();
+						List<Curve> boundary_splits_B = new List<Curve>();
+
+
+						Rhino.Geometry.Intersect.CurveIntersections First_X = Rhino.Geometry.Intersect.Intersection.CurvePlane(boundary, first_plane, 0.01);
+						Rhino.Geometry.Intersect.CurveIntersections Second_X = Rhino.Geometry.Intersect.Intersection.CurvePlane(boundary, second_plane, 0.01);
+
+						if (First_X != null && Second_X != null)
                         {
-							crv.Rebuild(2, 1, false);
-							Point3d test_point = crv.PointAt(0.5);
+							
 
-							Point3d first_plane_point = test_point;
-							Point3d second_plane_point = test_point;
+							Curve[] Curve_A1 = boundary.Split(First_X[0].ParameterA);
 
-							first_plane_point.Transform(Rhino.Geometry.Transform.PlanarProjection(first_plane));
-							second_plane_point.Transform(Rhino.Geometry.Transform.PlanarProjection(first_plane));
-
-							Vector3d First_Vect = new Line(test_point, first_plane_point).UnitTangent;
-								
-							Vector3d Second_Vect = new Line(test_point, second_plane_point).UnitTangent;
-
-							double angle = Vector3d.VectorAngle(First_Vect, Second_Vect);
-
-
-							if (angle > 1.5708 && angle < 4.71239)
+							foreach (Curve crv in Curve_A1)
                             {
-								Loops.Add(crv, new Grasshopper.Kernel.Data.GH_Path(i));
+								Curve[] Curve_A2 = crv.Split(Second_X[0].ParameterA);
 
-								Loops.Add(PlaneLines[i], new Grasshopper.Kernel.Data.GH_Path(i));
+								if(Curve_A2 != null)
+                                {
+									foreach (Curve Crv in Curve_A2)
+									{
+										boundary_splits_A.Add(Crv);
 
-								Loops.Add(PlaneLines[i + 1], new Grasshopper.Kernel.Data.GH_Path(i));
+									}
+								}
+                            }
 
+							List<Curve> Crv_A = CurveSelect(boundary_splits_A, first_plane, second_plane);
+							
+							
+							
+							if (Crv_A.Count == 1)
+							{
+								Loops.Add(Crv_A[0], new Grasshopper.Kernel.Data.GH_Path(i));
 							}
 
 
+							Curve[] Curve_B1 = boundary.Split(First_X[1].ParameterA);
+
+							foreach (Curve crv in Curve_B1)
+							{
+								Curve[] Curve_B2 = crv.Split(Second_X[1].ParameterA);
+
+								if (Curve_B2 != null)
+								{
+									foreach (Curve Crv in Curve_B2)
+									{
+										boundary_splits_B.Add(Crv);
+
+									}
+								}
+							}
+
+							List<Curve> Crv_B = CurveSelect(boundary_splits_B, first_plane, second_plane);
+
+							if (Crv_B.Count == 1)
+							{
+								Loops.Add(Crv_B[0], new Grasshopper.Kernel.Data.GH_Path(i));
+							}
 						}
+						
                     }
-
-
-
-
                 }
 				else
                 {
+					Rhino.Geometry.Intersect.CurveIntersections First_X = Rhino.Geometry.Intersect.Intersection.CurvePlane(boundary, planes_NS[0], 0.01);
+
+					Curve[] boundary_splits = boundary.Split(Plane_brep[0],0.01,0.1);
+
+					
+
+					
+							
+
 
 					Loops.Add(boundary_splits[0], new Grasshopper.Kernel.Data.GH_Path(0));
 					Loops.Add(PlaneLines[0], new Grasshopper.Kernel.Data.GH_Path(0));
@@ -311,13 +299,58 @@ namespace SplitCurves.Lib
 
 				}
 
-				*/
+				
 
 			}
 
 			return Loops;
         }
 
+		public static List<Curve> CurveSelect(List<Curve> boundary_splits,Plane first_plane,Plane Second_plane)
+        {
+			List<Curve> S_Curve = new List<Curve>();
 
+			foreach (Curve crv in boundary_splits)
+            {
+				if (crv != null)
+                {
+					crv.Domain = new Interval(0, 1);
+					Point3d test_point = crv.PointAt(0.5);
+
+					Point3d first_plane_point = test_point;
+					Point3d second_plane_point = test_point;
+
+					first_plane_point.Transform(Rhino.Geometry.Transform.PlanarProjection(first_plane));
+					second_plane_point.Transform(Rhino.Geometry.Transform.PlanarProjection(Second_plane));
+
+					Vector3d First_Vect = new Line(test_point, first_plane_point).UnitTangent;
+
+					Vector3d Second_Vect = new Line(test_point, second_plane_point).UnitTangent;
+
+					double angle = Vector3d.VectorAngle(First_Vect, Second_Vect);
+
+
+					if (angle > 1.5708 && angle < 4.71239)
+					{
+
+						S_Curve.Add(crv);
+						//return crv;
+
+						/*
+						Loops.Add(crv, new Grasshopper.Kernel.Data.GH_Path(i));
+
+						Loops.Add(PlaneLines[i], new Grasshopper.Kernel.Data.GH_Path(i));
+
+						Loops.Add(PlaneLines[i + 1], new Grasshopper.Kernel.Data.GH_Path(i));
+						*/
+
+						
+					}
+
+				}
+			
+			}
+			return S_Curve;
+		}
 	}
 }
