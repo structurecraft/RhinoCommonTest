@@ -97,7 +97,16 @@ namespace SplitCurves.Component
 		/// Provides an Icon for every component that will be visible in the User Interface.
 		/// Icons need to be 24x24 pixels.
 		/// </summary>
-		protected override System.Drawing.Bitmap Icon => null;
+		//protected override System.Drawing.Bitmap Icon => null;
+
+		protected override System.Drawing.Bitmap Icon
+		{
+			get
+			{
+				//return Resources.IconForThisComponent;
+				return null;
+			}
+		}
 
 		/// <summary>
 		/// Each component must have a unique Guid to identify it. 
@@ -105,6 +114,8 @@ namespace SplitCurves.Component
 		/// that use the old ID will partially fail during loading.
 		/// </summary>
 		public override Guid ComponentGuid => new Guid("e7e354c2-012c-4849-a641-9babbe769d67");
+
+
 
 	}
 }

@@ -18,6 +18,8 @@ namespace SplitCurves.Plugin
 			Instance = this;
 		}
 
+
+
 		///<summary>The only instance of this command.</summary>
 		public static SplitCurveCommand Instance { get; private set; }
 
