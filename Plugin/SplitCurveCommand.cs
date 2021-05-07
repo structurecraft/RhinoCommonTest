@@ -202,7 +202,8 @@ namespace SplitCurves.Plugin
         {
             double xDiff = end.X - start.X;
             double yDiff = end.Y - start.Y;
-            return (360 + Math.Atan2(xDiff, yDiff) * (180 / Math.PI)) % 360;
+            double azimuthAngle = (360 + Math.Atan2(xDiff, yDiff) * (180 / Math.PI)) % 360;
+            return Math.Round(azimuthAngle, 2, MidpointRounding.ToEven);
         }
     }
 }
