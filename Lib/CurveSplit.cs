@@ -147,7 +147,7 @@ namespace SplitCurves.Lib
 		}
 
 
-		public static Brep SplitingBrep(Curve boundary, List<Plane> planes_NS)
+		public static Brep[] SplitingBrep(Curve boundary, List<Plane> planes_NS)
 		{
 			Brep[] brep = Rhino.Geometry.Brep.CreatePlanarBreps(boundary, 0.001);
 
@@ -200,19 +200,14 @@ namespace SplitCurves.Lib
 
 			List<double> area = new List<double>();
 
-			Rhino.Geometry.colle Cutter_Splits[0].Faces;
+			//Rhino.Geometry.Collections.BrepFaceList CutterFaceList = Cutter_Splits[0].Faces;
 
-			foreach (Brep splits_i in Splits)
+			foreach (Brep splits_i in Cutter_Splits)
 			{
-				area.Add(splits_i.GetArea());
+				BrepLoop loop = splits_i.Faces[0].OuterLoop;
 
-				Surface Current_Surf = splits_i.Faces[0].DuplicateSurface();
+				Split_Loops.Add(loop.To3dCurve());
 
-				Curve[] EdgeCurve = Current_Surf.ToBrep().DuplicateEdgeCurves();
-
-				Curve[] EdgeCurve_J = Rhino.Geometry.Curve.JoinCurves(EdgeCurve);
-
-				Split_Loops.Add(EdgeCurve_J[0]);
 			}
 
 			return Split_Loops;
