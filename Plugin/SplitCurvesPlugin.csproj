@@ -72,6 +72,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetVector.cs" />
     <Compile Include="SplitCurveCommand.cs" />
     <Compile Include="SplitCurvesPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

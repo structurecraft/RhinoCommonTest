@@ -14,7 +14,7 @@ namespace SplitCurves.Component
 
 		public override Guid Id	=> new Guid("11e9f5c7-3a6c-4c62-b02d-b923e6abdff4");
 
-		public override string AuthorName => "Your Name Here";
+		public override string AuthorName => "Mirco Bianchini";
 
 		public override string AuthorContact => "";
 
