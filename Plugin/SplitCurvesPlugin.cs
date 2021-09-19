@@ -1,4 +1,5 @@
-﻿
+﻿using Rhino;
+
 namespace SplitCurves.Plugin
 {
 	///<summary>
