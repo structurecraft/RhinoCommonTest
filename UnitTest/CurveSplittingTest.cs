@@ -25,8 +25,11 @@ namespace SplitCurves.Testing
 			Curve Boundary = rect.ToNurbsCurve();
 
 			List<Plane> splitPlanes = new List<Plane>();
-			
-			for(int i = 1; i < 5; i++)
+
+			var ex = Assert.Throws<ArgumentException>(() => Curves.DivideCurve(Boundary, splitPlanes));
+			Assert.Equal("At least one plane must be provided to divide the curve.", ex.Message);
+
+			for (int i = 1; i < 5; i++)
 			{
 				Point3d planeOrigin = new Point3d(i * 500, 0, 0);
 				Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
@@ -49,7 +52,6 @@ namespace SplitCurves.Testing
 
 			Assert.Equal<double>(Math.Round(boundaryArea, 0), Math.Round(splitAreas, 0));
 		}
-
 	}
 
 }
