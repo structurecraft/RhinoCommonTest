@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using SplitCurves.Lib;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -32,6 +33,8 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
 		{
+			pManager.AddCurveParameter("Curves", "Curves", "Closed curves to split.", GH_ParamAccess.list);
+			pManager.AddPlaneParameter("Planes", "Planes", "Planes to split the curve(s).", GH_ParamAccess.list);
 		}
 
 		/// <summary>
@@ -39,6 +42,7 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
 		{
+			pManager.AddCurveParameter("Suburves", "Curves", "Curves created from split original curves.", GH_ParamAccess.tree);
 		}
 
 		/// <summary>
@@ -48,6 +52,35 @@ namespace SplitCurves.Component
 		/// to store data in output parameters.</param>
 		protected override void SolveInstance(IGH_DataAccess DA)
 		{
+			List<Curve> entryCurves = new List<Curve>();
+			List<Plane> entryPlanes = new List<Plane>();
+			if (!DA.GetDataList(0, entryCurves) || !DA.GetDataList(1, entryPlanes))
+			{
+				return;
+			}
+			if (entryCurves.Count == 0 || entryPlanes.Count == 0)
+			{
+				return;
+			}
+
+			DataTree<Curve> outCurves = new DataTree<Curve>();
+			int path = 0;
+			foreach (Curve curve in entryCurves)
+			{
+				var gp = new Grasshopper.Kernel.Data.GH_Path(path);
+				try
+				{
+					List<Curve> subCurves = Curves.DivideCurve(curve, entryPlanes);
+					// var gp = new Grasshopper.Kernel.Data.GH_Path(path);
+					outCurves.AddRange(subCurves, gp);
+				}
+				catch (ArgumentException)
+				{
+					outCurves.AddRange(new List<Curve> (), gp); // Keeping the path index
+				}
+				path += 1;
+			}
+			DA.SetDataTree(0, outCurves);
 		}
 
 		/// <summary>
