@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Rhino.Display;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
 namespace SplitCurves.Lib
 {
-	public static class Curves
+    public static class Curves
 	{
 		public static double tolerance = 0.01;
 		/// <summary>

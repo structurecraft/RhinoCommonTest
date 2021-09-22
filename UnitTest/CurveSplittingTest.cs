@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System;
 
 using Rhino.Geometry;
-using Rhino;
 
 using Xunit;
 
@@ -13,7 +11,7 @@ using SplitCurves.Lib;
 namespace SplitCurves.Testing
 {
 
-	[Collection("Rhino Collection")]
+    [Collection("Rhino Collection")]
 	public class CurveSplittingTest
 	{
 

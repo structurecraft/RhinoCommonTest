@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using Rhino;
@@ -8,13 +7,12 @@ using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
-using Rhino.DocObjects.Tables;
 using SplitCurves.Lib;
 
 
 namespace SplitCurves.Plugin
 {
-	public class SplitCurveCommand : Command
+    public class SplitCurveCommand : Command
 	{
 		public SplitCurveCommand()
 		{
