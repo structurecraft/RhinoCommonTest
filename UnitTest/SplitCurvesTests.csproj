@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.2" />
-    <PackageReference Include="RhinoCommon" Version="7.2.21021.7001" />
+    <PackageReference Include="RhinoCommon" Version="7.10.21256.17001" />
     <PackageReference Include="UnitsNet" Version="4.79.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -28,6 +28,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lib\SplitCurvesLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RhinoCommon">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Rhino 7\System\RhinoCommon.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
