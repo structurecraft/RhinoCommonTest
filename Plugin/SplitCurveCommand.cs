@@ -6,6 +6,7 @@ using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
+using SplitCurves.Lib;
 
 namespace SplitCurves.Plugin
 {
@@ -26,6 +27,28 @@ namespace SplitCurves.Plugin
 
 		protected override Result RunCommand(RhinoDoc doc, RunMode mode)
 		{
+            const ObjectType filter = ObjectType.Curve;
+            ObjRef objref;
+            var rc = RhinoGet.GetOneObject("Select curve to divide", false, filter, out objref);
+            if (rc != Result.Success)
+                return rc;
+
+            var curve = objref.Curve();
+            if (curve == null)
+                return Result.Failure;
+
+            var loop_count = 2;
+			rc = RhinoGet.GetInteger("Divide curve into how many segments?", false, ref loop_count);
+            if (rc != Result.Success)
+                return rc;
+
+            List<Plane> planes = Curves.CreateDivisionPlanes(curve, loop_count);
+
+            List<Curve> loops = Curves.DivideCurve(curve, planes);
+			
+			foreach (var loop in loops)
+                doc.Objects.AddCurve(loop);
+
 			return Result.Success;
 		}
 	}

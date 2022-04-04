@@ -30,8 +30,10 @@ namespace SplitCurves.Testing
 			{
 				Point3d planeOrigin = new Point3d(i * 500, 0, 0);
 				Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
-				splitPlanes.Add(splitPlane);
+				//splitPlanes.Add(splitPlane);
 			}
+
+            Assert.True(splitPlanes.Count > 0);
 
 			List<Curve> splitCurves = Curves.DivideCurve(Boundary, splitPlanes);
 
@@ -48,6 +50,24 @@ namespace SplitCurves.Testing
 			}
 
 			Assert.Equal<double>(Math.Round(boundaryArea, 0), Math.Round(splitAreas, 0));
+		}
+
+		[Fact]
+		public void PlanesArgumentOutOfRangeTest()
+		{
+			Rectangle3d rect = new Rectangle3d(Plane.WorldXY, 5000, 1000);
+			Curve Boundary = rect.ToNurbsCurve();
+
+			List<Plane> splitPlanes = new List<Plane>();
+			
+			for(int i = 1; i < 5; i++)
+			{
+				Point3d planeOrigin = new Point3d(i * 500, 0, 0);
+				Plane splitPlane = new Plane(planeOrigin, Vector3d.XAxis);
+				//splitPlanes.Add(splitPlane);
+			}
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => Curves.DivideCurve(Boundary, splitPlanes));
 		}
 
 	}
