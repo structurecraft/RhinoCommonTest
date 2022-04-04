@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using SplitCurves.Lib;
 
 // In order to load the result of this wizard, you will also need to
 // add the output bin/ folder of this project to the list of loaded
@@ -32,6 +34,9 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
 		{
+            pManager.AddCurveParameter("Curve", "C", "Curve to split into loops", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("LoopQty", "Q", "Quantity of loops", GH_ParamAccess.item);
+
 		}
 
 		/// <summary>
@@ -39,7 +44,26 @@ namespace SplitCurves.Component
 		/// </summary>
 		protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
 		{
+            pManager.AddCurveParameter("Loops", "L", "Loops split from a curve", GH_ParamAccess.list);
 		}
+
+        /// <summary>
+        /// Handle wrapped Grasshopper objects
+        /// </summary>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        private object UnwrapIfNeeded(object o)
+        {
+            var wrap = o as GH_ObjectWrapper;
+            if (wrap != null)
+            {
+                return wrap.Value;
+            }
+            else
+            {
+                return o;
+            }
+        }
 
 		/// <summary>
 		/// This is the method that actually does the work.
@@ -48,7 +72,29 @@ namespace SplitCurves.Component
 		/// to store data in output parameters.</param>
 		protected override void SolveInstance(IGH_DataAccess DA)
 		{
-		}
+            object curve = null;
+            int loop_count = 2;
+			
+            if (!DA.GetData(0, ref curve)) return;
+            DA.GetData(1, ref loop_count);
+
+            curve = UnwrapIfNeeded(curve);
+            GH_Curve ghCurve = curve as GH_Curve;
+            Curve rhCurve = ghCurve.Value;
+			
+			List<Plane> planes = Curves.CreateDivisionPlanes(rhCurve, loop_count);
+
+            List<Curve> loops = Curves.DivideCurve(rhCurve, planes);
+
+            List<GH_Curve> ghLoops = new List<GH_Curve>();
+            foreach (Curve loop in loops)
+            {
+                ghLoops.Add(new GH_Curve(loop));
+            }
+
+            // Return output
+            DA.SetDataList(0, ghLoops);
+        }
 
 		/// <summary>
 		/// Provides an Icon for every component that will be visible in the User Interface.
